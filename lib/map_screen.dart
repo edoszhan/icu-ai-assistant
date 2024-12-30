@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -13,29 +16,86 @@ class _MapScreenState extends State<MapScreen> {
   ];
   final TextEditingController _controller = TextEditingController();
 
+  final double _userLat = 37.551170;
+  final double _userLon = 126.988228;
+  final String _apiUrl = 'http://127.0.0.1:8002/api/find-location';
+
+  Timer? _loadingTimer;
+  String _loadingMessage = "Generating response .";
+
   @override
   void dispose() {
     _controller.dispose();
+    _loadingTimer?.cancel();
     super.dispose();
   }
 
-  void _handleSend(String userInput) {
+  void _startLoadingAnimation() {
+    int dotCount = 1;
+    _loadingTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
+      setState(() {
+        _loadingMessage = "Generating response ${'...' * dotCount}";
+        dotCount = (dotCount % 3) + 1;
+      });
+    });
+  }
+
+  void _stopLoadingAnimation() {
+    _loadingTimer?.cancel();
+    _loadingTimer = null;
+  }
+
+  void _handleSend(String userInput) async {
     if (userInput.isEmpty) return;
 
     setState(() {
       _messages.add({'role': 'user', 'content': userInput});
-      _messages.add({'role': 'bot', 'content': _generateMockResponse(userInput)});
+      _messages.add({'role': 'bot', 'content': _loadingMessage});
+      _controller.clear();
     });
 
-    _controller.clear();
+    _startLoadingAnimation();
+
+    final botResponse = await _sendToBackend(userInput);
+
+    _stopLoadingAnimation();
+
+    setState(() {
+      _messages.removeLast(); // Remove the loading message
+      _messages.add({'role': 'bot', 'content': botResponse});
+    });
   }
 
-  String _generateMockResponse(String userInput) {
-    // Simulated AI response logic based on user input
-    if (userInput.toLowerCase().contains('arabic restaurant')) {
-      return 'Here are the nearest Arabic restaurants: 1. Al Medina (Distance: 1.2 km, Hours: 9 AM - 9 PM)';
-    } else {
-      return "No data";
+  Future<String> _sendToBackend(String userInput) async {
+    final Map<String, dynamic> requestPayload = {
+      "latitude": _userLat,
+      "longitude": _userLon,
+      "prompt": userInput,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(_apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestPayload),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonResponse = jsonDecode(response.body);
+
+        if (jsonResponse.isEmpty) {
+          return "No results found.";
+        } else {
+          return jsonResponse
+              .map((item) =>
+                  "${item['Name']} - ${item['Category']} - ${item['Time']}")
+              .join("\n");
+        }
+      } else {
+        return "Sorry, we do not have data for this request. Try something else.";
+      }
+    } catch (e) {
+      return "An error occurred: $e";
     }
   }
 
@@ -84,6 +144,7 @@ class _MapScreenState extends State<MapScreen> {
                       hintText: 'Type your message...',
                       border: OutlineInputBorder(),
                     ),
+                    onSubmitted: _handleSend,
                   ),
                 ),
                 const SizedBox(width: 8),

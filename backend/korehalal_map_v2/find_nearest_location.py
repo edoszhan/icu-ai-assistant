@@ -18,14 +18,18 @@ except Exception as e:
 df = pd.DataFrame(dataset)
 
 def infer_category(prompt):
-    """Infer category by matching words in the prompt with categories in the dataset."""
-    prompt_words = prompt.lower().split()  
-    categories = df['Category'].str.lower().unique()  
+    """Infer category by matching words in the prompt"""
+    prompt_words = set(prompt.lower().split())  
+    categories_list = [
+        "indonesian", "korean", "uzbek", "arabic", "turkish", 
+        "western", "asian", "japanese", "moroccan", "chinese", 
+        "indian", "pakistani", "american", "international", "cafe"
+    ]
 
-    # Find the first matching category
-    for word in prompt_words:
-        if word in categories:
-            return word.capitalize()  
+    for category in categories_list:
+        if category in prompt_words:
+            return category.capitalize()  
+
     return None  
 
 def find_nearest_locations(user_lat, user_lon, category, max_results=2):
