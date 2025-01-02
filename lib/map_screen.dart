@@ -18,10 +18,11 @@ class _MapScreenState extends State<MapScreen> {
 
   final double _userLat = 37.551170;
   final double _userLon = 126.988228;
-  final String _apiUrl = 'http://127.0.0.1:8000/api/find-location';
+  final String _apiUrl = 'http://10.0.2.2:8002/api/find-location';
 
   Timer? _loadingTimer;
   String _loadingMessage = "Generating response .";
+  bool _showImage = true;
 
   @override
   void dispose() {
@@ -34,7 +35,7 @@ class _MapScreenState extends State<MapScreen> {
     int dotCount = 1;
     _loadingTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
       setState(() {
-        _loadingMessage = "Generating response ${'...' * dotCount}";
+        _loadingMessage = "Generating response ${'.' * dotCount}";
         dotCount = (dotCount % 3) + 1;
       });
     });
@@ -49,6 +50,7 @@ class _MapScreenState extends State<MapScreen> {
     if (userInput.isEmpty) return;
 
     setState(() {
+      _showImage = false; // Hide the image after the first message
       _messages.add({'role': 'user', 'content': userInput});
       _messages.add({'role': 'bot', 'content': _loadingMessage});
       _controller.clear();
@@ -108,6 +110,13 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: Column(
         children: [
+          Visibility(
+            visible: _showImage, // Show or hide the image based on _showImage
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Image.asset('assets/prophet_image.jpg', height: 200),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               reverse: true,

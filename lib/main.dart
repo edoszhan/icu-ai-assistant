@@ -41,11 +41,11 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Center the content vertically
+          mainAxisSize: MainAxisSize.min, 
           children: [
             ElevatedButton(
               onPressed: () {
-                // Navigate to the Halal Map Screen
+                // Navigate to the Halal AI Screen
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const MapScreen()),
@@ -54,9 +54,9 @@ class _MyHomePageState extends State<MyHomePage> {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
               ),
-              child: const Text('Open Halal Map'),
+              child: const Text('Open Halal AI'),
             ),
-            const SizedBox(height: 10), // Space between the buttons
+            const SizedBox(height: 10), 
             ElevatedButton(
               onPressed: () {
                 // Navigate to the Google Maps Screen
