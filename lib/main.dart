@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'map_screen.dart';
+import 'google_maps_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,18 +40,37 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            // Navigate to the new page
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MapScreen()),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-          ),
-          child: const Text('Open Halal Map'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // Center the content vertically
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to the Halal Map Screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MapScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              ),
+              child: const Text('Open Halal Map'),
+            ),
+            const SizedBox(height: 10), // Space between the buttons
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to the Google Maps Screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const GoogleMapScreen(title: 'Explore Locations')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              ),
+              child: const Text('Explore Locations'),
+            ),
+          ],
         ),
       ),
     );

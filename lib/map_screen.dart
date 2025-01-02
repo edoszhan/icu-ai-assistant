@@ -18,7 +18,7 @@ class _MapScreenState extends State<MapScreen> {
 
   final double _userLat = 37.551170;
   final double _userLon = 126.988228;
-  final String _apiUrl = 'http://127.0.0.1:8002/api/find-location';
+  final String _apiUrl = 'http://127.0.0.1:8000/api/find-location';
 
   Timer? _loadingTimer;
   String _loadingMessage = "Generating response .";
