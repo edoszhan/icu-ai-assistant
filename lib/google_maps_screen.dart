@@ -26,9 +26,9 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
     },
     {
       'id': '2',
-      'name': 'Gyeongbokgung Palace',
-      'position': LatLng(37.579617, 126.977041),
-      'description': 'A historic palace in Seoul.'
+      'name': 'By Tofu',
+      'position': LatLng(37.5460221,126.9851827),
+      'description': 'A Korean vegetarian restaurant.'
     },
     {
       'id': '3',
@@ -36,6 +36,30 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
       'position': LatLng(37.570485, 127.009596),
       'description': 'A bustling shopping district.'
     },
+    {
+      'id': '4',
+      'name': 'Lotte Hotel Seoul',
+      'position': LatLng(37.56530000000001,126.980979),
+      'description': '🔔If you request from the hotel 2-3 days in advance, room service will provide halal lamb and beef tenderloin steak.'
+    },
+    {
+      'id': '5',
+      'name': 'Mayfiled Hotel',
+      'position': LatLng(37.5475247, 126.8187885),
+      'description': 'A popular tourist hotel in Seoul, {\$} 150~ per night'
+    },
+    {
+      'id': '6',
+      'name': 'Samsung Medical Center',
+      'position': LatLng(37.4881193, 127.0849885),
+      'description': 'Musolla in here but It is temporarily closed'
+    },
+    {
+      'id': '7',
+      'name': 'Kampungku',
+      'position': LatLng(37.5590205, 126.9860206),
+      'description': 'A Korean halal restaurant which works from 11:30 am - 09:30 pm'
+    }
   ];
 
   @override
