@@ -21,7 +21,9 @@ class _MapScreenState extends State<MapScreen> {
   final double _userLat = 37.551170;
   final double _userLon = 126.988228;
   // final String _apiUrl = 'http://10.0.2.2:8000/api/find-location'; // if using android device
-  final String _apiUrl = 'http://127.0.0.1:8000/api/find-location'; // if using linux devices
+  // final String _apiUrl = 'http://127.0.0.1:8001/api/find-location'; // if using linux devices
+
+  final String _apiUrl = 'http://127.0.0.1:8001/api/generate-response'; // if using linux devices
 
   Timer? _loadingTimer;
   String _loadingMessage = "Generating response .";
@@ -115,8 +117,6 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<String> _sendToBackend(String userInput) async {
     final Map<String, dynamic> requestPayload = {
-      "latitude": _userLat,
-      "longitude": _userLon,
       "prompt": userInput,
     };
 
@@ -135,7 +135,7 @@ class _MapScreenState extends State<MapScreen> {
         } else {
           return jsonResponse
               .map((item) =>
-                  "${item['Name']} - ${item['Category']} - ${item['Time']}")
+                  "${item['Name']} - ${item['Category']} - ${item['Time']} - ${item['Classification']} ")
               .join("\n");
         }
       } else {

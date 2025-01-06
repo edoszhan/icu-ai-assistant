@@ -16,7 +16,7 @@ logging.basicConfig(
 logging.info("Script started")
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) 
-dataset_path = os.path.join(script_dir, '../dataset/combined_dataset.csv')  # Temporary dataset
+dataset_path = os.path.join(script_dir, '../dataset/combined_dataset.csv') 
 
 # Load the dataset
 try:
