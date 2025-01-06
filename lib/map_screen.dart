@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'distance_map_screen.dart';
 
-
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -21,7 +20,8 @@ class _MapScreenState extends State<MapScreen> {
 
   final double _userLat = 37.551170;
   final double _userLon = 126.988228;
-  final String _apiUrl = 'http://10.0.2.2:8000/api/find-location';
+  // final String _apiUrl = 'http://10.0.2.2:8000/api/find-location'; // if using android device
+  final String _apiUrl = 'http://127.0.0.1:8000/api/find-location'; // if using linux devices
 
   Timer? _loadingTimer;
   String _loadingMessage = "Generating response .";
@@ -49,69 +49,69 @@ class _MapScreenState extends State<MapScreen> {
     _loadingTimer = null;
   }
 
-  // void _handleSend(String userInput) async {
-  //   if (userInput.isEmpty) return;
-
-  //   setState(() {
-  //     _showImage = false; // Hide the image after the first message
-  //     _messages.add({'role': 'user', 'content': userInput});
-  //     _messages.add({'role': 'bot', 'content': _loadingMessage});
-  //     _controller.clear();
-  //   });
-
-  //   _startLoadingAnimation();
-
-  //   final botResponse = await _sendToBackend(userInput);
-
-  //   _stopLoadingAnimation();
-
-  //   setState(() {
-  //     _messages.removeLast(); // Remove the loading message
-  //     _messages.add({'role': 'bot', 'content': botResponse});
-  //   });
-  // }
-
   void _handleSend(String userInput) async {
-  if (userInput.isEmpty) return;
+    if (userInput.isEmpty) return;
 
-  setState(() {
-    _showImage = false;
-    _messages.add({'role': 'user', 'content': userInput});
-    _messages.add({'role': 'bot', 'content': _loadingMessage});
-    _controller.clear();
-  });
+    setState(() {
+      _showImage = false; // Hide the image after the first message
+      _messages.add({'role': 'user', 'content': userInput});
+      _messages.add({'role': 'bot', 'content': _loadingMessage});
+      _controller.clear();
+    });
 
-  _startLoadingAnimation();
+    _startLoadingAnimation();
 
-  final botResponse = await _sendToBackend(userInput);
+    final botResponse = await _sendToBackend(userInput);
 
-  _stopLoadingAnimation();
+    _stopLoadingAnimation();
 
-  setState(() {
-    _messages.removeLast();
-    _messages.add({'role': 'bot', 'content': botResponse});
-  });
+    setState(() {
+      _messages.removeLast(); // Remove the loading message
+      _messages.add({'role': 'bot', 'content': botResponse});
+    });
+  }
 
-  // Simulate receiving location data from the backend
-  final List<Map<String, dynamic>> locationData = [
-    {'id': '1', 'name': 'By Tofu', 'position': LatLng(37.5460221, 126.9851827), 'description': 'A Korean vegetarian restaurant which works between 09:00 - 18:30. Closed on Tuesdays, Wednesdays.'},
-    {'id': '2', 'name': 'Kampungku', 'position': LatLng(37.5590205,126.9860206), 'description': 'A traditional Korean cafe which opens from 11:30 am to 9:30 pm'},
-  ];
+//   void _handleSend(String userInput) async {
+//   if (userInput.isEmpty) return;
 
-  // Navigate to GoogleMapScreen after 3 seconds
-  Future.delayed(const Duration(seconds: 3), () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DistanceMapScreen(
-          title: 'Explore Locations',
-          currentLocation: LatLng(_userLat, _userLon),
-          locations: locationData,
-        ),
-      ),
-    );
-  });
-}
+//   setState(() {
+//     _showImage = false;
+//     _messages.add({'role': 'user', 'content': userInput});
+//     _messages.add({'role': 'bot', 'content': _loadingMessage});
+//     _controller.clear();
+//   });
+
+//   _startLoadingAnimation();
+
+//   final botResponse = await _sendToBackend(userInput);
+
+//   _stopLoadingAnimation();
+
+//   setState(() {
+//     _messages.removeLast();
+//     _messages.add({'role': 'bot', 'content': botResponse});
+//   });
+
+//   // Simulate receiving location data from the backend
+//   final List<Map<String, dynamic>> locationData = [
+//     {'id': '1', 'name': 'By Tofu', 'position': LatLng(37.5460221, 126.9851827), 'description': 'A Korean vegetarian restaurant which works between 09:00 - 18:30. Closed on Tuesdays, Wednesdays.'},
+//     {'id': '2', 'name': 'Kampungku', 'position': LatLng(37.5590205,126.9860206), 'description': 'A traditional Korean cafe which opens from 11:30 am to 9:30 pm'},
+//   ];
+
+//   // Navigate to GoogleMapScreen after 3 seconds
+//   Future.delayed(const Duration(seconds: 3), () {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(
+//         builder: (context) => DistanceMapScreen(
+//           title: 'Explore Locations',
+//           currentLocation: LatLng(_userLat, _userLon),
+//           locations: locationData,
+//         ),
+//       ),
+//     );
+//   });
+// }
 
   Future<String> _sendToBackend(String userInput) async {
     final Map<String, dynamic> requestPayload = {
