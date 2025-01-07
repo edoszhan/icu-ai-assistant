@@ -6,7 +6,6 @@ import os
 import logging
 import numpy as np
 
-# Set up logging
 logging.basicConfig(
     filename="location_service.log",
     level=logging.DEBUG,
@@ -47,7 +46,6 @@ categories_list = [
 ]
 
 def infer_type(prompt):
-    """Infer type from the user prompt using NLP"""
     logging.debug("Inferring type from prompt: %s", prompt)
     prompt_words = set(prompt.lower().split())
     
@@ -60,7 +58,6 @@ def infer_type(prompt):
     return None
 
 def infer_category(prompt):
-    """Infer category by matching words in the prompt (for restaurants)"""
     logging.debug("Inferring category from prompt: %s", prompt)
     prompt_words = set(prompt.lower().split())
     

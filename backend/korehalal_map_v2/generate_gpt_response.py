@@ -51,7 +51,6 @@ def infer_classification_and_location(prompt):
 
 
 def call_find_nearest_location(lat, lon, classification):
-    """Call the find_nearest_location.py script with inferred details."""
     script_path = os.path.join(os.path.dirname(__file__), 'find_nearest_location.py')
     
     try:
@@ -73,7 +72,6 @@ def call_find_nearest_location(lat, lon, classification):
 
 
 def generate_answer(results):
-    """Generate a human-readable, conversational response from JSON data."""
     if "error" in results:
         return f"An error occurred: {results['error']}"
 
@@ -111,11 +109,10 @@ if __name__ == "__main__":
 
         results = call_find_nearest_location(location["latitude"], location["longitude"], classification)
         
-        # # Ensure the output is valid JSON
-        # print(json.dumps(results, ensure_ascii=False))
+        print(json.dumps(results, ensure_ascii=False))
 
-        answer = generate_answer(results)
-        print(answer)
+        # answer = generate_answer(results)
+        # print(answer)
 
     except Exception as e:
         print(json.dumps({"error": f"Script error: {str(e)}"}))

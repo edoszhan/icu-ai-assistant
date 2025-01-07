@@ -23,6 +23,7 @@ class GenerateGPTResponseController extends Controller
 
         $scriptPath = base_path('generate_gpt_response.py');
         // $pythonPath = '/usr/bin/python3';
+        // have to use this because the my-venv is using older version of openai, in the future we will change to adapt to 1.0.0 openai version
         $pythonPath = '/mnt/c/Users/icu-e/projects/korehalal_map/backend/korehalal_map_v2/my-venv/bin/python3';
         $process = new Process([$pythonPath, $scriptPath, $prompt]);
         $process->run();

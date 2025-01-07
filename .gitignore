@@ -46,4 +46,4 @@ app.*.map.json
 
 /backend/dataset
 
-/backend/korehalal_map_v2/my-venv/lib
+/backend/korehalal_map_v2/my-venv
