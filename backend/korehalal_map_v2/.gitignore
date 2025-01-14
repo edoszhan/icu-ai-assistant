@@ -21,5 +21,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-/my-venv
-my-venv
+/venv
+/lambda_function.zip
+output.json
+/lambda_folder

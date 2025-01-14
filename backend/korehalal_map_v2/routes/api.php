@@ -17,3 +17,5 @@ Route::get('/hello-api', function () {
 Route::post('/find-location', [LocationController::class, 'findLocation']);
 
 Route::post('/generate-response', [GenerateGPTResponseController::class, 'generateResponse']);
+
+Route::get('/lambda-connected', [LambdaTestController::class, 'checkLambdaConnection']);
