@@ -7,11 +7,23 @@ use Illuminate\Support\Facades\Http;
 
 class LambdaTestController extends Controller
 {
-    public function checkLambdaConnection()
+    public function checkLambdaConnection(Request $request)
     {
         try {
-            $response = Http::get('https://your-api-gateway-id.execute-api.your-region.amazonaws.com/dev');
-            
+            $request->validate([
+                'prompt' => 'required|string'
+            ]);
+
+            $prompt = $request->input('prompt');
+            $lambdaUrl = env('AWS_LAMBDA_URL');
+
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($lambdaUrl, [
+                'prompt' => $prompt
+            ]);
+
             if ($response->successful()) {
                 return response()->json([
                     'success' => true,
@@ -26,7 +38,6 @@ class LambdaTestController extends Controller
                 'status' => $response->status(),
                 'error' => $response->body()
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
