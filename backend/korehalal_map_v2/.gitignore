@@ -25,3 +25,6 @@ yarn-error.log
 /lambda_function.zip
 output.json
 /lambda_folder
+lambda_package/*
+!/lambda_package/lambda_function.py
+!/lambda_package/lambda_function.zip
