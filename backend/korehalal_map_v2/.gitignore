@@ -28,4 +28,8 @@ output.json
 /lambda_folder
 lambda_package/*
 !/lambda_package/lambda_function.py
-!/lambda_package/lambda_function.zip
+!/lambda_package/gpt_functions.py
+!/lambda_package/database_connect.py
+!/lambda_package/location_operations.py
+!/lambda_package/sql_operations.py
+!/lambda_package/others.py

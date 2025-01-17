@@ -4,11 +4,8 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-def lambda_handler(event, context):
+def generate_general_response(user_prompt):
     try:
-        body = json.loads(event['body'])
-        user_prompt = body.get('prompt', 'No prompt provided')
-        
         instruction = "You are a helpful assistant."
         
         response = client.chat.completions.create(
@@ -19,16 +16,31 @@ def lambda_handler(event, context):
             ],
             max_tokens=300
         )
-        
-      
+
         generated_text = response.choices[0].message.content.strip()
-   
+        usage = response.usage
+
+        return {
+            "response": generated_text,
+            "prompt_tokens": usage.prompt_tokens,
+            "completion_tokens": usage.completion_tokens
+        }
+    except Exception as e:
+        raise Exception(f"Error generating response: {str(e)}")
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event['body'])
+        user_prompt = body.get('prompt', 'No prompt provided')
+
+        response_data = generate_general_response(user_prompt)
+
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'response': generated_text,
-                'prompt_tokens': response.usage.prompt_tokens,
-                'completion_tokens': response.usage.completion_tokens
+                'response': response_data['response'],
+                'prompt_tokens': response_data['prompt_tokens'],
+                'completion_tokens': response_data['completion_tokens']
             })
         }
     except Exception as e:
