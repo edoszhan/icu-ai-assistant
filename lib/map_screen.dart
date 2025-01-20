@@ -20,10 +20,10 @@ class _MapScreenState extends State<MapScreen> {
 
   final double _userLat = 37.551170;
   final double _userLon = 126.988228;
-  final String _apiUrl = 'http://10.0.2.2:8000/api/generate-response'; // if using android device
+  // final String _apiUrl = 'http://10.0.2.2:8000/api/lambda-connected'; // if using android device
   // final String _apiUrl = 'http://127.0.0.1:8000/api/find-location'; // if using linux devices
 
-  // final String _apiUrl = 'http://127.0.0.1:8000/api/generate-response'; // if using linux devices
+  final String _apiUrl = 'http://127.0.0.1:8000/api/lambda-connected'; // if using linux devices
 
   Timer? _loadingTimer;
   String _loadingMessage = "Generating response ...";
@@ -73,50 +73,6 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-//   [IMPORTANT!] this part of the code refers to navigation to GoogleMaps Screen, which is not included right now
-
-//   void _handleSend(String userInput) async {
-//   if (userInput.isEmpty) return;
-
-//   setState(() {
-//     _showImage = false;
-//     _messages.add({'role': 'user', 'content': userInput});
-//     _messages.add({'role': 'bot', 'content': _loadingMessage});
-//     _controller.clear();
-//   });
-
-//   _startLoadingAnimation();
-
-//   final botResponse = await _sendToBackend(userInput);
-
-//   _stopLoadingAnimation();
-
-//   setState(() {
-//     _messages.removeLast();
-//     _messages.add({'role': 'bot', 'content': botResponse});
-//   });
-
-//   // Simulate receiving location data from the backend
-//   final List<Map<String, dynamic>> locationData = [
-//     {'id': '1', 'name': 'By Tofu', 'position': LatLng(37.5460221, 126.9851827), 'description': 'A Korean vegetarian restaurant which works between 09:00 - 18:30. Closed on Tuesdays, Wednesdays.'},
-//     {'id': '2', 'name': 'Kampungku', 'position': LatLng(37.5590205,126.9860206), 'description': 'A traditional Korean cafe which opens from 11:30 am to 9:30 pm'},
-//   ];
-
-//   // Navigate to GoogleMapScreen after 3 seconds
-//   Future.delayed(const Duration(seconds: 3), () {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => DistanceMapScreen(
-//           title: 'Explore Locations',
-//           currentLocation: LatLng(_userLat, _userLon),
-//           locations: locationData,
-//         ),
-//       ),
-//     );
-//   });
-// }
-
   Future<String> _sendToBackend(String userInput) async {
     final Map<String, dynamic> requestPayload = {
       "prompt": userInput,
@@ -129,22 +85,23 @@ class _MapScreenState extends State<MapScreen> {
         body: jsonEncode(requestPayload),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> jsonResponse = jsonDecode(response.body);
+      print("Raw response: ${response.body}");
 
-        if (jsonResponse.isEmpty) {
-          return "No results found.";
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+
+        if (jsonResponse.containsKey('data') && jsonResponse['data'] != null) {
+          final String botMessage = jsonResponse['data'].toString();
+          return botMessage;
         } else {
-          return jsonResponse
-              .map((item) =>
-                  "${item['Name']} - ${item['Category']} - ${item['Time']} - ${item['Classification']} ")
-              .join("\n");
+          return "No response data received from the server.";
         }
       } else {
         return "Sorry, we do not have data for this request. Try something else.";
       }
     } catch (e) {
-      return "An error occurred: $e";
+      print("Error: $e");
+      return "An error occurred: ${e.toString()}";
     }
   }
 

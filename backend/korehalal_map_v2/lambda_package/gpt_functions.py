@@ -54,6 +54,7 @@ def infer_type_and_location(prompt):
         - 'type': An array of classifications ('Restaurant' and/or 'Tourist Attraction').
         - 'location': A specific location mentioned in the prompt.
         - 'coordinates': A dictionary with "latitude" and "longitude" values as floats, formatted with double quotes.
+        For 'Seoul' or 'South Korea' or 'current location' or 'my location', always return {{'latitude': 37.551170, 'longitude': 126.988228}}.
 
         Example JSON output:
         {{

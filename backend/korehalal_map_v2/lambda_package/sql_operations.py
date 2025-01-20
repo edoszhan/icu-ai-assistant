@@ -42,19 +42,25 @@ def get_places_by_type(user_location, place_types, limit=3):
             for place_type in place_types:
                 sql_query = """
                 SELECT name, address, description, type,
-                    ST_Distance_Sphere(point(longitude, latitude), point(%s, %s)) AS distance_km
+                    ST_Distance_Sphere(point(longitude, latitude), point(%s, %s)) AS distance_meters
                 FROM locations
                 WHERE type = %s
-                ORDER BY distance_km ASC
+                ORDER BY distance_meters ASC
                 LIMIT %s;
                 """
-                cursor.execute(sql_query, (user_lat, user_lon, user_lat, place_type, limit))
+                cursor.execute(sql_query, (user_lon, user_lat, place_type, limit))
                 results = cursor.fetchall()
+
+                for row in results:
+                    row['distance_km'] = round(row['distance_meters'] / 1000, 2)
+                    del row['distance_meters']  
+
                 all_results.extend(results)
 
         return all_results
 
     except Exception as e:
         raise Exception(f"Error fetching places by type: {str(e)}")
+
     finally:
         connection.close()
