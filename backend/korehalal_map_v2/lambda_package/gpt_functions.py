@@ -3,7 +3,7 @@ import re
 from openai import OpenAI
 import os
 
-# from location_operations import get_coordinates_nominatim
+from location_operations import get_coordinates_nominatim
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -81,14 +81,14 @@ def infer_type_and_location(prompt):
         location = parsed_result.get("location", DEFAULT_LOCATION)
         coordinates = parsed_result.get("coordinates", {"latitude": DEFAULT_LAT, "longitude": DEFAULT_LON})
 
-        # # If location is specific, we handle it separately
-        # if location != DEFAULT_LOCATION and "Seoul" not in location and "South Korea" not in location:
-        #     try:
-        #         lat, lon = get_coordinates_nominatim(location)
-        #         coordinates = {"latitude": lat, "longitude": lon}
-        #     except Exception as e:
-        #         print(f"Geocoding failed for {location}: {e}")
-        #         coordinates = {"latitude": DEFAULT_LAT, "longitude": DEFAULT_LON}
+        # If location is specific, we handle it separately
+        if location != DEFAULT_LOCATION and "Seoul" not in location and "South Korea" not in location:
+            try:
+                lat, lon = get_coordinates_nominatim(location)
+                coordinates = {"latitude": lat, "longitude": lon}
+            except Exception as e:
+                print(f"Geocoding failed for {location}: {e}")
+                coordinates = {"latitude": DEFAULT_LAT, "longitude": DEFAULT_LON}
 
         return {
             "inquiry_type": inquiry_type,
