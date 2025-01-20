@@ -28,8 +28,6 @@ def lambda_handler(event, context):
                 # query the database for specific locations or detail
                 results = query_database(user_location, place_type)
                 response = generate_human_response(prompt, results)
-            else:
-                response = "Invalid inquiry subtype."
         else:
             response = "Invalid inquiry type."
 

@@ -44,16 +44,26 @@ def infer_type_and_location(prompt):
     DEFAULT_LOCATION = "Seoul Station, South Korea"
 
     gpt_prompt = f"""
-    You are an AI assistant specializing in Muslim-friendly places in Korea.
-    Analyze the following user prompt: "{prompt}".
-    Return a JSON object with:
-    - 'inquiry_type': A type of inquiry that user is asking for ('general_inquiry' or 'search_inquiry'). Our data contains locations of restaurants and tourist attractions, decide whether these data can provide value to the user prompt. If not somewhat relation or value, inquiry_type must return general_inquiry.
-      'general_inquiry' does not require dataset calls, while 'search_inquiry' requires dataset interaction.
-    - 'inquiry_subtype': If 'general_inquiry', return None. For 'search_inquiry', specify 'itinerary_inquiry' (user is asking to create a plan/itinerary) or 'direct_inquiry' (user asks for specific location details), it can not be null. The result can not be anything else except for either these 3 options.
-    - 'type': an array of classifications ('Restaurant' and/or 'Tourist Attraction').
-    - 'location': A specific location mentioned in the prompt, if any. Default to '{DEFAULT_LOCATION}' if not provided.
-    - 'coordinates': A dictionary with 'latitude' and 'longitude' values. For 'Seoul' or 'South Korea' or 'current location' or 'my location', always return {{'latitude': 37.551170, 'longitude': 126.988228}}.
-    """
+        You are an AI assistant specializing in Muslim-friendly places in Korea.
+        Analyze the following user prompt: "{prompt}".
+        Return a JSON object strictly following correct JSON formatting with double quotes around property names and values.
+
+        The output should have:
+        - 'inquiry_type': A type of inquiry that user is asking for ('general_inquiry' or 'search_inquiry').
+        - 'inquiry_subtype': If 'general_inquiry', return null. For 'search_inquiry', specify 'itinerary_inquiry' or 'direct_inquiry'.
+        - 'type': An array of classifications ('Restaurant' and/or 'Tourist Attraction').
+        - 'location': A specific location mentioned in the prompt.
+        - 'coordinates': A dictionary with "latitude" and "longitude" values as floats, formatted with double quotes.
+
+        Example JSON output:
+        {{
+            "inquiry_type": "search_inquiry",
+            "inquiry_subtype": "direct_inquiry",
+            "type": ["Restaurant"],
+            "location": "Seoul, South Korea",
+            "coordinates": {{"latitude": 37.551170, "longitude": 126.988228}}
+        }}
+        """
 
     try:
         response = client.chat.completions.create(

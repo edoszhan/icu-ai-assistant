@@ -42,9 +42,7 @@ def get_places_by_type(user_location, place_types, limit=3):
             for place_type in place_types:
                 sql_query = """
                 SELECT name, address, description, type,
-                ( 6371 * acos(cos(radians(%s)) * cos(radians(latitude)) 
-                * cos(radians(longitude) - radians(%s)) + sin(radians(%s)) 
-                * sin(radians(latitude)))) AS distance_km
+                    ST_Distance_Sphere(point(longitude, latitude), point(%s, %s)) AS distance_km
                 FROM locations
                 WHERE type = %s
                 ORDER BY distance_km ASC
