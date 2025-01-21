@@ -49,3 +49,4 @@ app.*.map.json
 /backend/korehalal_map_v2/my-venv
 
 /lib/old_map_screen.dart
+/lib/others.dart

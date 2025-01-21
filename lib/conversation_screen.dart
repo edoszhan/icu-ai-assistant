@@ -99,7 +99,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        return jsonResponse['data']?.toString() ?? "No response from server.";
+        return jsonResponse['data']?.toString() ?? "Service is under heavy load. Please try again.";
       } else {
         return "Sorry, we do not have data for this request. Try something else.";
       }

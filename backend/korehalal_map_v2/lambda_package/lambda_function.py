@@ -1,8 +1,10 @@
 import json
-from gpt_functions import generate_general_response, infer_type_and_location, generate_human_response
+from gpt_functions import generate_general_response, infer_type_and_location, generate_human_response, reset_session
 from sql_operations import query_database, get_places_by_type
 
+
 def lambda_handler(event, context):
+    reset_session()
     try:
         # parse user input
         body = json.loads(event["body"])

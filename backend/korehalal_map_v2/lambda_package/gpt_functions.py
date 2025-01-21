@@ -20,7 +20,18 @@ def generate_general_response(prompt):
         raise Exception(f"Error generating response: {str(e)}")
 
 
+def reset_session():
+    global session_history
+    session_history = [
+        {"role": "system", "content": "You are a helpful travel assistant specializing in Korea."}
+    ]
+
+session_history = [
+    {"role": "system", "content": "You are a helpful travel assistant. Your users are people abroad who are interested in coming to Korea or people already in Korea. If questions ask for directions for places outside of South Korea, politely clarify that your focus is only in Korea. Be friendly and tailor your responses for Muslim users."}
+]
+
 def generate_human_response(prompt, results):
+    global session_history
     response_prompt = f"""
     Based on the following retrieved data, respond to the user query:
     User query: "{prompt}"
@@ -30,10 +41,21 @@ def generate_human_response(prompt, results):
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": response_prompt}],
+            messages=session_history + [{"role": "user", "content": response_prompt}],
             max_tokens=500
         )
-        return response.choices[0].message.content.strip()
+
+        bot_response = response.choices[0].message.content.strip()
+        
+        # Append gpt response for context
+        session_history.append({"role": "assistant", "content": bot_response})
+        if len(session_history) > 5:
+            session_history.pop(0)
+
+        print(f"Prompt tokens: ", response.usage.prompt_tokens)
+        print(f"Completion tokens: ", response.usage.completion_tokens)
+        print(f"Session history: ", session_history)
+        return bot_response
     except Exception as e:
         raise Exception(f"Failed to generate human response: {str(e)}")
 
@@ -113,4 +135,11 @@ def infer_type_and_location(prompt):
     except json.JSONDecodeError as jde:
         raise ValueError(f"Failed to parse GPT response as JSON. Raw output: {result}. Error: {str(jde)}")
     except Exception as e:
-        raise ValueError(f"Failed to infer type and location: {str(e)}")
+        print(f"Error in inference: {e}")
+        return {
+            "inquiry_type": "general_inquiry",
+            "inquiry_subtype": None,
+            "type": [],
+            "location": DEFAULT_LOCATION,
+            "coordinates": {"latitude": DEFAULT_LAT, "longitude": DEFAULT_LON}
+        }
