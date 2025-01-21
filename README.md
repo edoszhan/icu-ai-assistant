@@ -1,4 +1,4 @@
-# korehalal_map
+# ICU AI Guide Service
 
 A new Flutter project.
 

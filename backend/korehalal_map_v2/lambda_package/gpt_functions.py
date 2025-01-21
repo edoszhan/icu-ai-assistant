@@ -49,10 +49,11 @@ def infer_type_and_location(prompt):
         Return a JSON object strictly following correct JSON formatting with double quotes around property names and values.
 
         The output should have:
-        - 'inquiry_type': A type of inquiry that user is asking for ('general_inquiry' or 'search_inquiry').
-        - 'inquiry_subtype': If 'general_inquiry', return null. For 'search_inquiry', specify 'itinerary_inquiry' or 'direct_inquiry'.
-        - 'type': An array of classifications ('Restaurant' and/or 'Tourist Attraction').
-        - 'location': A specific location mentioned in the prompt.
+        - 'inquiry_type': A type of inquiry that user is asking for ('general_inquiry' or 'search_inquiry'). Our data contains locations of restaurants, tourist attractions and prayer rooms, decide whether these data can provide value to the user prompt. If not somewhat relation or value, inquiry_type must return general_inquiry. If users asks questions not related to restaurants/food, tourist attractions/fun places or prayer rooms/mosques, then you can assume 'general_inquiry'.
+          'general_inquiry' does not require dataset calls, while 'search_inquiry' requires dataset interaction.
+        - 'inquiry_subtype': If 'general_inquiry', return None. For 'search_inquiry', specify 'itinerary_inquiry' or 'direct_inquiry' (user asks for specific location details), it can not be null. The result can not be anything else except for either these 3 options.
+        - 'type': An array of classifications ('Restaurant','Tourist Attraction' and/or 'Prayer Room').
+        - 'location': A specific location mentioned in the prompt. Identify specific cities or locations mentioned. 
         - 'coordinates': A dictionary with "latitude" and "longitude" values as floats, formatted with double quotes.
         For 'Seoul' or 'South Korea' or 'current location' or 'my location', always return {{'latitude': 37.551170, 'longitude': 126.988228}}.
 

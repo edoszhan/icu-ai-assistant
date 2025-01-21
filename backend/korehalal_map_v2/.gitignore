@@ -32,4 +32,6 @@ lambda_package/*
 !/lambda_package/database_connect.py
 !/lambda_package/location_operations.py
 !/lambda_package/sql_operations.py
-!/lambda_package/others.py
+
+.find_nearest_location.py
+.generate_gpt_response.py
