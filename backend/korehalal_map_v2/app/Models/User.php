@@ -20,6 +20,19 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
 
+    const ROLE_FREE = 'regular_user';
+    const ROLE_PREMIUM = 'premium_user';
+
+    /**
+     * Determine if the user is a regular user.
+     *
+     * @return bool
+     */
+    public function isPremium()
+    {
+        return $this->role === self::ROLE_PREMIUM;
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -29,6 +42,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
