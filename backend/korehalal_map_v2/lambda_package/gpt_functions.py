@@ -11,7 +11,7 @@ def generate_general_response(prompt):
     try:
         instruction = "You are a helpful assistant. Provide answers relevant to people in Korea."
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[{"role": "system", "content": instruction}, {"role": "user", "content": prompt}],
             max_tokens=300
         )
@@ -40,7 +40,7 @@ def generate_human_response(prompt, results):
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=session_history + [{"role": "user", "content": response_prompt}],
             max_tokens=500
         )
@@ -52,8 +52,8 @@ def generate_human_response(prompt, results):
         if len(session_history) > 5:
             session_history.pop(0)
 
-        print(f"Prompt tokens: ", response.usage.prompt_tokens)
-        print(f"Completion tokens: ", response.usage.completion_tokens)
+        print(f"Prompt tokens - generate response: ", response.usage.prompt_tokens)
+        print(f"Completion tokens - generate response: ", response.usage.completion_tokens)
         print(f"Session history: ", session_history)
         return bot_response
     except Exception as e:
@@ -91,13 +91,17 @@ def infer_type_and_location(prompt):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": gpt_prompt}],
             max_tokens=200
         )
 
+        print("User prompt: ", prompt)
+
         result = response.choices[0].message.content.strip()
         print("Debug - GPT Output:", result)
+        print(f"Prompt tokens - infer type and location: ", response.usage.prompt_tokens)
+        print(f"Completion tokens - infer type and location: ", response.usage.completion_tokens)
 
         # Extract JSON content
         json_match = re.search(r'{.*}', result, re.DOTALL)

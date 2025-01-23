@@ -50,3 +50,5 @@ app.*.map.json
 
 /lib/old_map_screen.dart
 /lib/others.dart
+
+/frontend
