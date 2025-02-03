@@ -75,7 +75,8 @@ def infer_type_and_location(prompt):
           'general_inquiry' does not require dataset calls, while 'search_inquiry' requires dataset interaction.
         - 'inquiry_subtype': If 'general_inquiry', return None. For 'search_inquiry', specify 'itinerary_inquiry' or 'direct_inquiry' (user asks for specific location details), it can not be null. The result can not be anything else except for either these 3 options.
         - 'type': An array of classifications ('Restaurant','Tourist Attraction' and/or 'Prayer Room').
-        - 'location': A specific location mentioned in the prompt. Identify specific cities or locations mentioned. 
+        - 'location': A list of specific locations mentioned in the prompt. Identify SPECIFIC location names only (cities/districts/landmarks). If no location specified, use "Seoul Station, South Korea".
+
         - 'coordinates': A dictionary with "latitude" and "longitude" values as floats, formatted with double quotes.
         For 'Seoul' or 'South Korea' or 'current location' or 'my location', always return {{'latitude': 37.551170, 'longitude': 126.988228}}.
 
@@ -84,7 +85,7 @@ def infer_type_and_location(prompt):
             "inquiry_type": "search_inquiry",
             "inquiry_subtype": "direct_inquiry",
             "type": ["Restaurant"],
-            "location": "Seoul, South Korea",
+            "location": ["Seoul", "Itaewon", "Gangnam", "Myeongdong"],
             "coordinates": {{"latitude": 37.551170, "longitude": 126.988228}}
         }}
         """
@@ -147,3 +148,13 @@ def infer_type_and_location(prompt):
             "location": DEFAULT_LOCATION,
             "coordinates": {"latitude": DEFAULT_LAT, "longitude": DEFAULT_LON}
         }
+
+
+
+# Notes 
+# Generate natural response with this structure:
+# 1. Introduction
+# 2. For each location:
+# - Header
+# - Bullet points of results
+# 3. Closing remarks

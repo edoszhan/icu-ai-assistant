@@ -64,3 +64,89 @@ def get_places_by_type(user_location, place_types, limit=3):
 
     finally:
         connection.close()
+
+
+# ORM CODE (takes 2x more to get response)
+# Technically GPT calls protects from SQL injections, so we can keep raw SQL queries
+
+# from sqlalchemy.orm import sessionmaker
+# from sqlalchemy import create_engine, func
+# from database_connect import get_db_session
+# from models import Location  # Ensure models.py defines Location ORM model
+
+# def query_database(user_location, place_types):
+#     session = get_db_session()
+#     try:
+#         results = []
+#         for place_type in place_types:
+#             query = (
+#                 session.query(
+#                     Location.name,
+#                     Location.address,
+#                     Location.description,
+#                     Location.type,
+#                     func.ST_Distance_Sphere(
+#                         func.point(Location.longitude, Location.latitude),
+#                         func.point(user_location["longitude"], user_location["latitude"])
+#                     ).label("distance_km")
+#                 )
+#                 .filter(Location.type == place_type)
+#                 .order_by("distance_km")
+#                 .limit(5)
+#             )
+            
+#             rows = query.all()
+#             results.extend([
+#                 {
+#                     "Name": row.name,
+#                     "Address": row.address,
+#                     "Description": row.description,
+#                     "Type": row.type,
+#                     "Distance (km)": round(row.distance_km / 1000, 2)
+#                 }
+#                 for row in rows
+#             ])
+#         return results
+#     finally:
+#         session.close()
+
+
+# def get_places_by_type(user_location, place_types, limit=3):
+#     session = get_db_session()
+#     user_lat = user_location["latitude"]
+#     user_lon = user_location["longitude"]
+#     all_results = []
+
+#     try:
+#         for place_type in place_types:
+#             query = (
+#                 session.query(
+#                     Location.name,
+#                     Location.address,
+#                     Location.description,
+#                     Location.type,
+#                     func.ST_Distance_Sphere(
+#                         func.point(Location.longitude, Location.latitude),
+#                         func.point(user_lon, user_lat)
+#                     ).label("distance_meters")
+#                 )
+#                 .filter(Location.type == place_type)
+#                 .order_by("distance_meters")
+#                 .limit(limit)
+#             )
+
+#             results = query.all()
+#             for row in results:
+#                 all_results.append({
+#                     "Name": row.name,
+#                     "Address": row.address,
+#                     "Description": row.description,
+#                     "Type": row.type,
+#                     "Distance (km)": round(row.distance_meters / 1000, 2)
+#                 })
+        
+#         return all_results
+#     except Exception as e:
+#         raise Exception(f"Error fetching places by type: {str(e)}")
+#     finally:
+#         session.close()
