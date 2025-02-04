@@ -10,7 +10,7 @@ class LocationsSeeder extends Seeder
 {
     public function run()
     {
-        $filePath = $filePath = base_path('dataset/combined_dataset.csv');
+        $filePath = base_path('dataset/test_combined_dataset.csv');
 
         if (!File::exists($filePath)) {
             $this->command->error("CSV file not found at {$filePath}");
@@ -18,22 +18,28 @@ class LocationsSeeder extends Seeder
         }
 
         $csvData = array_map('str_getcsv', file($filePath));
-        $headers = ['latitude', 'longitude', 'name', 'category', 'time', 'description', 'classification', 'address', 'type'];
+        $headers = ['Latitude', 'Longitude', 'Name', 'Category', 'Time', 'Description', 'Classification', 'Address', 'Type'];
         unset($csvData[0]); // Remove first row (headers)
 
         foreach ($csvData as $row) {
+            // Skip rows with incorrect column counts
+            if (count($row) !== count($headers)) {
+                $this->command->warn("Skipping row due to incorrect number of columns: " . implode(',', $row));
+                continue;
+            }
+
             $rowData = array_combine($headers, $row);
 
             DB::table('locations')->insert([
-                'latitude' => $rowData['latitude'],
-                'longitude' => $rowData['longitude'],
-                'name' => $rowData['name'],
-                'category' => $rowData['category'],
-                'time' => $rowData['time'],
-                'description' => $rowData['description'],
-                'classification' => $rowData['classification'],
-                'address' => $rowData['address'],
-                'type' => $rowData['type'],
+                'latitude' => $rowData['Latitude'],
+                'longitude' => $rowData['Longitude'],
+                'name' => $rowData['Name'],
+                'category' => $rowData['Category'],
+                'time' => $rowData['Time'],
+                'description' => $rowData['Description'],
+                'classification' => $rowData['Classification'],
+                'address' => $rowData['Address'],
+                'type' => $rowData['Type'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

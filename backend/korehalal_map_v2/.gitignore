@@ -36,3 +36,5 @@ lambda_package/*
 
 .find_nearest_location.py
 .generate_gpt_response.py
+
+dataset
