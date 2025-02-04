@@ -25,7 +25,6 @@ yarn-error.log
 /venv
 /lambda_function.zip
 output.json
-/lambda_folder
 lambda_package/*
 !/lambda_package/lambda_function.py
 !/lambda_package/gpt_functions.py
@@ -33,7 +32,7 @@ lambda_package/*
 !/lambda_package/location_operations.py
 !/lambda_package/sql_operations.py
 !/lambda_package/models.py
-
+!/lambda_package/requirements.txt
 .find_nearest_location.py
 .generate_gpt_response.py
 
