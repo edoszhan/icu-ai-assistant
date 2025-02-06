@@ -10,41 +10,37 @@ class LocationsSeeder extends Seeder
 {
     public function run()
     {
-        $filePath = base_path('dataset/test_combined_dataset.csv');
+        $filePath = base_path('dataset/combined_dataset.json');
 
         if (!File::exists($filePath)) {
-            $this->command->error("CSV file not found at {$filePath}");
+            $this->command->error("JSON file not found at {$filePath}");
             return;
         }
 
-        $csvData = array_map('str_getcsv', file($filePath));
-        $headers = ['Latitude', 'Longitude', 'Name', 'Category', 'Time', 'Description', 'Classification', 'Address', 'Type'];
-        unset($csvData[0]); // Remove first row (headers)
+        $jsonData = File::get($filePath);
+        $locations = json_decode($jsonData, true);
 
-        foreach ($csvData as $row) {
-            // Skip rows with incorrect column counts
-            if (count($row) !== count($headers)) {
-                $this->command->warn("Skipping row due to incorrect number of columns: " . implode(',', $row));
-                continue;
-            }
+        if ($locations === null) {
+            $this->command->error("Invalid JSON format in file: {$filePath}");
+            return;
+        }
 
-            $rowData = array_combine($headers, $row);
-
+        foreach ($locations as $location) {
             DB::table('locations')->insert([
-                'latitude' => $rowData['Latitude'],
-                'longitude' => $rowData['Longitude'],
-                'name' => $rowData['Name'],
-                'category' => $rowData['Category'],
-                'time' => $rowData['Time'],
-                'description' => $rowData['Description'],
-                'classification' => $rowData['Classification'],
-                'address' => $rowData['Address'],
-                'type' => $rowData['Type'],
+                'latitude' => $location['Latitude'],
+                'longitude' => $location['Longitude'],
+                'name' => $location['Name'],
+                'category' => $location['Category'],
+                'time' => $location['Time'],
+                'description' => $location['Description'],
+                'classification' => $location['Classification'],
+                'address' => $location['Address'],
+                'type' => $location['Type'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
-        $this->command->info('Locations CSV imported successfully!');
+        $this->command->info('Locations JSON imported successfully!');
     }
 }

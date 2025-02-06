@@ -40,7 +40,7 @@ def generate_human_response(prompt, results):
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4-turbo",
             messages=session_history + [{"role": "user", "content": response_prompt}],
             max_tokens=500
         )

@@ -76,6 +76,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     _startLoadingAnimation();
 
     final botResponse = await _sendToBackend(userInput);
+    // await _sendToBackend(userInput);
 
     _stopLoadingAnimation();
 

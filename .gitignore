@@ -52,3 +52,5 @@ app.*.map.json
 /lib/others.dart
 
 /frontend
+
+generate_gpt_response.py   
