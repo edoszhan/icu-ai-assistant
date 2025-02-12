@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'map_screen.dart';
+import 'guide_screen.dart';
 import 'google_maps_screen.dart';
 
 void main() {

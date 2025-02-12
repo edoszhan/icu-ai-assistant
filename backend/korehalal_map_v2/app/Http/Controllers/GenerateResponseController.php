@@ -6,26 +6,27 @@ use Illuminate\Http\Request;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Log;
 
-class GenerateGPTResponseController extends Controller
+class GenerateResponseController extends Controller
 {
     public function generateGeneralResponse(Request $request)
     {
-        Log::info('Request received for GPT response:', $request->all());
+        Log::info('Request received:', $request->all());
 
-        // Validate input
+        // validation
         $validated = $request->validate([
             'prompt' => 'required|string',
         ]);
 
         $prompt = $validated['prompt'];
-        Log::info('Validated input:', ['prompt' => $prompt]);
 
         $scriptPath = base_path('generate_gpt_response.py');
+        $lambdaPath = base_path('lambda_package/lambda_function.py');
         $pythonPath = '/usr/bin/python3';
-
-        // Start the Python script as a streaming process
-        $process = new Process([$pythonPath, $scriptPath, $prompt]);
+ 
+        // start python script as a streaming process
+        $process = new Process([$pythonPath, $lambdaPath]);
         $process->setTimeout(3600);
+        $process->setInput(json_encode(['prompt' => $prompt]));
         $process->start();
 
         return response()->stream(function () use ($process) {
@@ -54,7 +55,7 @@ class GenerateGPTResponseController extends Controller
                 echo "data: Error processing request.\n\n";
             }
 
-            echo "data: [DONE]\n\n"; // Indicate stream completion
+            echo "data: [DONE]\n\n"; // indicate stream completion
             ob_flush();
             flush();
         }, 200, [

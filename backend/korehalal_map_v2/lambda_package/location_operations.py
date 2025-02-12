@@ -1,4 +1,5 @@
 import requests
+import logging 
 
 def get_coordinates_nominatim(place_name):
     base_url = "https://nominatim.openstreetmap.org/search"
@@ -8,4 +9,4 @@ def get_coordinates_nominatim(place_name):
     if data:
         return float(data[0]['lat']), float(data[0]['lon'])
     else:
-        raise ValueError(f"Failed to get coordinates for {place_name}")
+        logging.debug("get_nominatim_failed error")

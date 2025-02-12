@@ -1,23 +1,77 @@
 import json
 import re
-from openai import OpenAI
 import os
-
+import time
+import sys
+import logging
+from openai import OpenAI, OpenAIError
 from location_operations import get_coordinates_nominatim
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+logging.basicConfig(filename='/tmp/python_debug.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    logging.error("❌ OPENAI_API_KEY environment variable is missing!")
+    raise ValueError("OPENAI_API_KEY environment variable is not set. Please configure it before running.")
+
+try:
+    client = OpenAI(api_key=api_key)
+    logging.debug("✅ OpenAI client initialized successfully.")
+except OpenAIError as e:
+    logging.error("❌ Failed to initialize OpenAI client: %s", str(e))
+    raise
 
 def generate_general_response(prompt):
+    start_time = time.time()
     try:
-        instruction = "You are a helpful assistant. Provide answers relevant to people in Korea."
+        instruction = "You are a helpful assistant. Provide helpful answers"
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "system", "content": instruction}, {"role": "user", "content": prompt}],
-            max_tokens=300
+            messages=[
+                {"role": "system", "content": instruction},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=200,
+            stream=True
         )
-        return response.choices[0].message.content.strip()
+
+        buffer = ""
+        last_char = " "  # decide spacing based on last char
+
+        for chunk in response:
+            if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
+                token = chunk.choices[0].delta.content.strip()
+
+                if last_char and not last_char.isspace() and token and not token.startswith((" ", ".", ",", "'", "\"", "-", "’")):
+                    buffer += " "  # add space btw words
+
+                buffer += token
+                last_char = token[-1] if token else last_char
+
+                # new sentences start with space
+                if re.search(r'[.!?]', token):
+                    buffer += " "
+
+                # if sentence-ending punctuation or space is found, print buffer
+                if re.search(r'\s|[.,!?;:\"]$', token):
+                    sys.stdout.write(buffer)
+                    sys.stdout.flush()
+                    buffer = ""  # reset buffer after printing
+
+                time.sleep(0.02)  # delay for streaming effect
+
+
+        if buffer: # print remaining buffer
+            sys.stdout.write(buffer)
+            sys.stdout.flush()
+
     except Exception as e:
-        raise Exception(f"Error generating response: {str(e)}")
+        sys.stderr.write(f"Error: {str(e)}\n")
+        sys.stderr.flush()
+    finally:
+        end_time = time.time()
+        logging.debug("generate_general_response execution time: %.4f seconds", end_time - start_time)
 
 
 def reset_session():
@@ -31,6 +85,7 @@ session_history = [
 ]
 
 def generate_human_response(prompt, results):
+    start_time = time.time()
     global session_history
     response_prompt = f"""
     Based on the following retrieved data, respond to the user query:
@@ -40,26 +95,50 @@ def generate_human_response(prompt, results):
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-4o-mini",
             messages=session_history + [{"role": "user", "content": response_prompt}],
-            max_tokens=500
+            max_tokens=500,
+            stream=True
         )
 
-        bot_response = response.choices[0].message.content.strip()
-        
-        # Append gpt response for context
-        session_history.append({"role": "assistant", "content": bot_response})
-        if len(session_history) > 5:
-            session_history.pop(0)
+        buffer = ""
+        last_char = " "  # decide spacing based on last char
 
-        print(f"Prompt tokens - generate response: ", response.usage.prompt_tokens)
-        print(f"Completion tokens - generate response: ", response.usage.completion_tokens)
-        print(f"Session history: ", session_history)
-        return bot_response
+        for chunk in response:
+            if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
+                token = chunk.choices[0].delta.content.strip()
+
+                if last_char and not last_char.isspace() and token and not token.startswith((" ", ".", ",", "'", "\"", "-", "’")):
+                    buffer += " "  # add space btw words
+
+                buffer += token
+                last_char = token[-1] if token else last_char
+
+                # new sentences start with space
+                if re.search(r'[.!?]', token):
+                    buffer += " "
+
+                # if sentence-ending punctuation or space is found, print buffer
+                if re.search(r'\s|[.,!?;:\"]$', token):
+                    sys.stdout.write(buffer)
+                    sys.stdout.flush()
+                    buffer = ""  # reset buffer after printing
+
+                time.sleep(0.05)  # delay for streaming effect
+
+        if buffer: # print remaining buffer
+            sys.stdout.write(buffer)
+            sys.stdout.flush()
+
     except Exception as e:
-        raise Exception(f"Failed to generate human response: {str(e)}")
+        sys.stderr.write(f"Error: {str(e)}\n")
+        sys.stderr.flush()
+    finally:
+        end_time = time.time()
+        logging.debug("generate_human_response execution time: %.4f seconds", end_time - start_time)
 
 def infer_type_and_location(prompt):
+    start_time = time.time()
     # default values
     DEFAULT_LAT = 37.551170
     DEFAULT_LON = 126.988228
@@ -94,15 +173,13 @@ def infer_type_and_location(prompt):
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": gpt_prompt}],
-            max_tokens=200
+            max_tokens=100
         )
 
-        print("User prompt: ", prompt)
-
         result = response.choices[0].message.content.strip()
-        print("Debug - GPT Output:", result)
-        print(f"Prompt tokens - infer type and location: ", response.usage.prompt_tokens)
-        print(f"Completion tokens - infer type and location: ", response.usage.completion_tokens)
+        # print("Debug - GPT Output:", result)
+        # print(f"Prompt tokens - infer type and location: ", response.usage.prompt_tokens)
+        # print(f"Completion tokens - infer type and location: ", response.usage.completion_tokens)
 
         # Extract JSON content
         json_match = re.search(r'{.*}', result, re.DOTALL)
@@ -126,9 +203,9 @@ def infer_type_and_location(prompt):
                 lat, lon = get_coordinates_nominatim(location)
                 coordinates = {"latitude": lat, "longitude": lon}
             except Exception as e:
-                print(f"Geocoding failed for {location}: {e}")
                 coordinates = {"latitude": DEFAULT_LAT, "longitude": DEFAULT_LON}
-
+        end_time = time.time()
+        logging.debug("infer_type_and_location execution time: %.4f seconds", end_time - start_time)
         return {
             "inquiry_type": inquiry_type,
             "inquiry_subtype": inquiry_subtype,
@@ -140,7 +217,6 @@ def infer_type_and_location(prompt):
     except json.JSONDecodeError as jde:
         raise ValueError(f"Failed to parse GPT response as JSON. Raw output: {result}. Error: {str(jde)}")
     except Exception as e:
-        print(f"Error in inference: {e}")
         return {
             "inquiry_type": "general_inquiry",
             "inquiry_subtype": None,
@@ -148,13 +224,3 @@ def infer_type_and_location(prompt):
             "location": DEFAULT_LOCATION,
             "coordinates": {"latitude": DEFAULT_LAT, "longitude": DEFAULT_LON}
         }
-
-
-
-# Notes 
-# Generate natural response with this structure:
-# 1. Introduction
-# 2. For each location:
-# - Header
-# - Bullet points of results
-# 3. Closing remarks

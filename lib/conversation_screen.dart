@@ -15,10 +15,7 @@ class ConversationScreen extends StatefulWidget {
 class _ConversationScreenState extends State<ConversationScreen> {
   final List<Map<String, String>> _messages = [];
   final TextEditingController _controller = TextEditingController();
-  final String _apiUrl = 'http://127.0.0.1:8000/api/lambda-connected';
-
-  Timer? _loadingTimer;
-  String _loadingMessage = "Generating response ...";
+  final String _apiUrl = 'http://127.0.0.1:8000/api/generate-response';
   bool _showImage = true;
 
   @override
@@ -30,7 +27,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   void dispose() {
     _controller.dispose();
-    _loadingTimer?.cancel();
     super.dispose();
   }
 
@@ -48,64 +44,75 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
-  void _startLoadingAnimation() {
-    int dotCount = 1;
-    _loadingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _loadingMessage = "Generating response ${'.' * dotCount}";
-        dotCount = (dotCount % 3) + 1;
-      });
-    });
-  }
-
-  void _stopLoadingAnimation() {
-    _loadingTimer?.cancel();
-    _loadingTimer = null;
-  }
-
   void _handleSend(String userInput) async {
     if (userInput.isEmpty) return;
 
     setState(() {
       _showImage = false;
       _messages.add({'role': 'user', 'content': userInput});
-      _messages.add({'role': 'bot', 'content': _loadingMessage});
+      _messages.add({'role': 'bot', 'content': 'Generating answer...'}); // Add empty bot message for streaming updates
       _controller.clear();
     });
 
-    _startLoadingAnimation();
-
-    final botResponse = await _sendToBackend(userInput);
-    // await _sendToBackend(userInput);
-
-    _stopLoadingAnimation();
-
-    setState(() {
-      _messages.removeLast();
-      _messages.add({'role': 'bot', 'content': botResponse});
-    });
-
+    await _sendToBackend(userInput);
     _saveChatLocally();
   }
 
-  Future<String> _sendToBackend(String userInput) async {
-    final Map<String, dynamic> requestPayload = {"prompt": userInput};
+  Future<void> _sendToBackend(String userInput) async {
+    final Map<String, String> requestPayload = {"prompt": userInput};
 
     try {
-      final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(requestPayload),
-      );
+      final request = http.Request("POST", Uri.parse(_apiUrl))
+        ..headers["Content-Type"] = "application/json"
+        ..body = jsonEncode(requestPayload);
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        return jsonResponse['data']?.toString() ?? "Service is under heavy load. Please try again.";
+      final streamedResponse = await http.Client().send(request);
+
+      if (streamedResponse.statusCode == 200) {
+        final stream = streamedResponse.stream.transform(utf8.decoder);
+        String botMessage = "";
+        String buffer = "";
+
+        await for (var chunk in stream) {
+          if (chunk.startsWith("data: ")) {
+            String token = chunk.substring(6).trim(); // Remove 'data: ' prefix
+
+            if (token == "[DONE]") break; // Stop streaming when done
+
+            // Ensure spacing before words, but not inside a word split across tokens
+            if (buffer.isNotEmpty && !buffer.endsWith(" ") && !token.startsWith(" ")) {
+              buffer += " ";
+            }
+            buffer += token;
+
+            // If token ends in a space or punctuation, append to final output
+            if (RegExp(r'[.,!?;:\s]').hasMatch(token)) {
+              botMessage += buffer;
+              buffer = ""; // Reset buffer
+            }
+
+            setState(() {
+              _messages.last['content'] = botMessage + buffer; // Update UI progressively
+            });
+          }
+        }
+
+        // Append any remaining text in buffer after streaming ends
+        if (buffer.isNotEmpty) {
+          botMessage += buffer;
+          setState(() {
+            _messages.last['content'] = botMessage;
+          });
+        }
       } else {
-        return "Sorry, we do not have data for this request. Try something else.";
+        setState(() {
+          _messages.last['content'] = "Error: Unable to fetch response.";
+        });
       }
     } catch (e) {
-      return "An error occurred: ${e.toString()}";
+      setState(() {
+        _messages.last['content'] = "An error occurred: ${e.toString()}";
+      });
     }
   }
 

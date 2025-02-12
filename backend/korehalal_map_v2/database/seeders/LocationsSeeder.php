@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\File;
 class LocationsSeeder extends Seeder
 {
     public function run()
-    {
+{
         $filePath = base_path('dataset/combined_dataset.json');
 
         if (!File::exists($filePath)) {

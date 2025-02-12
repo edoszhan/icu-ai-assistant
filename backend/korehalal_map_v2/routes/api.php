@@ -6,6 +6,7 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\GenerateGPTResponseController;
 use App\Http\Controllers\LambdaTestController;
 use App\Http\Middleware\CheckUserRole;
+use App\Http\Controllers\GenerateResponseController;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +18,7 @@ Route::get('/hello-api', function () {
 
 Route::post('/find-location', [LocationController::class, 'findLocation']);
 
-Route::post('/generate-response', [GenerateGPTResponseController::class, 'generateGeneralResponse']);
+Route::post('/generate-response', [GenerateResponseController::class, 'generateGeneralResponse']);
 
 Route::get('/lambda-connected', [LambdaTestController::class, 'checkLambdaConnection']);
 Route::post('/lambda-connected', [LambdaTestController::class, 'checkLambdaConnection']);
