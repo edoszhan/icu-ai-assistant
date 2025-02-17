@@ -16,6 +16,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff002113)),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          titleTextStyle: TextStyle(
+            color: Colors.white, 
+            fontSize: 20, 
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       home: const MyHomePage(title: 'Korehalal Trip'),
     );
@@ -36,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.teal,
         title: Text(widget.title),
       ),
       body: Center(

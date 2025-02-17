@@ -13,10 +13,12 @@ class ConversationScreen extends StatefulWidget {
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {
-  final List<Map<String, String>> _messages = [];
+  final List<Map<String, dynamic>> _messages = [];
   final TextEditingController _controller = TextEditingController();
   final String _apiUrl = 'http://127.0.0.1:8000/api/generate-response';
   bool _showImage = true;
+  bool _isStreaming = false;
+  StreamSubscription? _streamSubscription;
 
   @override
   void initState() {
@@ -27,6 +29,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
@@ -49,6 +52,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
     setState(() {
       _showImage = false;
+      _isStreaming = true;
       _messages.add({'role': 'user', 'content': userInput});
       _messages.add({'role': 'bot', 'content': 'Generating answer...'}); // Add empty bot message for streaming updates
       _controller.clear();
@@ -57,6 +61,134 @@ class _ConversationScreenState extends State<ConversationScreen> {
     await _sendToBackend(userInput);
     _saveChatLocally();
   }
+
+   void _stopStreaming() {
+    _streamSubscription?.cancel(); // Stop streaming
+    setState(() {
+      _isStreaming = false; // Hide stop button
+    });
+  }
+
+  // Future<void> _sendToBackend(String userInput) async {
+  //   final Map<String, String> requestPayload = {"prompt": userInput};
+
+  //   try {
+  //     final request = http.Request("POST", Uri.parse(_apiUrl))
+  //       ..headers["Content-Type"] = "application/json"
+  //       ..body = jsonEncode(requestPayload);
+
+  //     final streamedResponse = await http.Client().send(request);
+
+  //     if (streamedResponse.statusCode == 200) {
+  //       final stream = streamedResponse.stream.transform(utf8.decoder);
+  //       String botMessage = "";
+  //       String buffer = "";
+
+  //       await for (var chunk in stream) {
+  //         if (chunk.startsWith("data: ")) {
+  //           String token = chunk.substring(6).trim(); // Remove 'data: ' prefix
+
+  //           if (token == "[DONE]") break; // Stop streaming when done
+
+  //           // Ensure spacing before words, but not inside a word split across tokens
+  //           if (buffer.isNotEmpty && !buffer.endsWith(" ") && !token.startsWith(" ")) {
+  //             buffer += " ";
+  //           }
+  //           buffer += token;
+
+  //           // If token ends in a space or punctuation, append to final output
+  //           if (RegExp(r'[.,!?;:\s]').hasMatch(token)) {
+  //             botMessage += buffer;
+  //             buffer = ""; // Reset buffer
+  //           }
+
+  //           setState(() {
+  //             _messages.last['content'] = botMessage + buffer; // Update UI progressively
+  //           });
+  //         }
+  //       }
+
+  //       // Append any remaining text in buffer after streaming ends
+  //       if (buffer.isNotEmpty) {
+  //         botMessage += buffer;
+  //         setState(() {
+  //           _messages.last['content'] = botMessage;
+  //         });
+  //       }
+  //     } else {
+  //       setState(() {
+  //         _messages.last['content'] = "Error: Unable to fetch response.";
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       _messages.last['content'] = "An error occurred: ${e.toString()}";
+  //     });
+  //   }
+  // }
+
+  // Future<void> _sendToBackend(String userInput) async {
+  //   final Map<String, String> requestPayload = {"prompt": userInput};
+
+  //   try {
+  //     final request = http.Request("POST", Uri.parse(_apiUrl))
+  //       ..headers["Content-Type"] = "application/json"
+  //       ..body = jsonEncode(requestPayload);
+
+  //     final streamedResponse = await http.Client().send(request);
+
+  //     if (streamedResponse.statusCode == 200) {
+  //       final stream = streamedResponse.stream.transform(utf8.decoder);
+  //       String botMessage = "";
+  //       String buffer = "";
+  //       String lastToken = "";
+  //       bool lastTokenHadSpace = false;
+
+  //       await for (var chunk in stream) {
+  //         if (chunk.startsWith("data: ")) {
+  //           String token = chunk.substring(6).trim(); // Remove 'data: ' prefix
+
+  //           if (token == "[DONE]") break; // Stop streaming when done
+
+  //           bool tokenHasLeadingSpace = token.startsWith(" ");
+  //           token = token.trim(); // Remove any leading space for processing
+
+  //           // Merge words properly if split across multiple tokens
+  //           if (lastToken.isNotEmpty && !lastTokenHadSpace && !tokenHasLeadingSpace) {
+  //             buffer += token; // Merge with previous token
+  //           } else {
+  //             if (buffer.isNotEmpty) botMessage += buffer + " ";
+  //             buffer = token;
+  //           }
+
+  //           // Check if this token ends with punctuation or a space
+  //           lastTokenHadSpace = RegExp(r'[.,!?;:\s]$').hasMatch(token);
+  //           lastToken = token;
+
+  //           setState(() {
+  //             _messages.last['content'] = botMessage + buffer; // Update UI progressively
+  //           });
+  //         }
+  //       }
+
+  //       // Append any remaining text in buffer after streaming ends
+  //       if (buffer.isNotEmpty) {
+  //         botMessage += buffer;
+  //         setState(() {
+  //           _messages.last['content'] = botMessage;
+  //         });
+  //       }
+  //     } else {
+  //       setState(() {
+  //         _messages.last['content'] = "Error: Unable to fetch response.";
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       _messages.last['content'] = "An error occurred: ${e.toString()}";
+  //     });
+  //   }
+  // }
 
   Future<void> _sendToBackend(String userInput) async {
     final Map<String, String> requestPayload = {"prompt": userInput};
@@ -72,49 +204,61 @@ class _ConversationScreenState extends State<ConversationScreen> {
         final stream = streamedResponse.stream.transform(utf8.decoder);
         String botMessage = "";
         String buffer = "";
+        String lastToken = "";
+        bool lastTokenHadSpace = false;
 
-        await for (var chunk in stream) {
+        _streamSubscription = stream.listen((chunk) {
           if (chunk.startsWith("data: ")) {
-            String token = chunk.substring(6).trim(); // Remove 'data: ' prefix
+            String token = chunk.substring(6).trim();
 
-            if (token == "[DONE]") break; // Stop streaming when done
-
-            // Ensure spacing before words, but not inside a word split across tokens
-            if (buffer.isNotEmpty && !buffer.endsWith(" ") && !token.startsWith(" ")) {
-              buffer += " ";
-            }
-            buffer += token;
-
-            // If token ends in a space or punctuation, append to final output
-            if (RegExp(r'[.,!?;:\s]').hasMatch(token)) {
-              botMessage += buffer;
-              buffer = ""; // Reset buffer
+            if (token == "[DONE]") {
+              _stopStreaming(); // Stop when done
+              return;
             }
 
+            bool tokenHasLeadingSpace = token.startsWith(" ");
+            token = token.trim();
+
+            if (lastToken.isNotEmpty && !lastTokenHadSpace && !tokenHasLeadingSpace) {
+              buffer += token;
+            } else {
+              if (buffer.isNotEmpty) botMessage += buffer + " ";
+              buffer = token;
+            }
+
+            lastTokenHadSpace = RegExp(r'[.,!?;:\s]$').hasMatch(token);
+            lastToken = token;
+
+            if (mounted) {
+              setState(() {
+                _messages.last['content'] = botMessage + buffer;
+              });
+            }
+          }
+        });
+
+        _streamSubscription!.onDone(() {
+          if (mounted) {
             setState(() {
-              _messages.last['content'] = botMessage + buffer; // Update UI progressively
+              _isStreaming = false;
             });
           }
-        }
+        });
 
-        // Append any remaining text in buffer after streaming ends
-        if (buffer.isNotEmpty) {
-          botMessage += buffer;
-          setState(() {
-            _messages.last['content'] = botMessage;
-          });
-        }
       } else {
         setState(() {
+          _isStreaming = false;
           _messages.last['content'] = "Error: Unable to fetch response.";
         });
       }
     } catch (e) {
       setState(() {
+        _isStreaming = false;
         _messages.last['content'] = "An error occurred: ${e.toString()}";
       });
     }
   }
+
 
   void _saveChatLocally() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -124,7 +268,18 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(
+          widget.title,
+          style: const TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold, 
+          ),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.teal, 
+        elevation: 4, 
+      ),
       body: Column(
         children: [
           Visibility(
@@ -175,15 +330,27 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
+                    minLines: 1, 
+                    maxLines: null, 
+                    keyboardType: TextInputType.multiline,
                     decoration: const InputDecoration(hintText: 'Type your message...', border: OutlineInputBorder()),
                     onSubmitted: _handleSend,
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () => _handleSend(_controller.text),
-                  child: const Text('Send'),
-                ),
+                _isStreaming
+                  ? IconButton(
+                      onPressed: _stopStreaming,
+                      icon: const Icon(Icons.stop, color: Colors.red), // Square stop icon
+                      iconSize: 28, // Adjust size if needed
+                      tooltip: "Stop Response",
+                    )
+                  : IconButton(
+                      onPressed: () => _handleSend(_controller.text),
+                      icon: const Icon(Icons.send, color: Colors.teal), // Arrow up send icon
+                      iconSize: 28, // Adjust size if needed
+                      tooltip: "Send",
+                    ),
               ],
             ),
           ),
