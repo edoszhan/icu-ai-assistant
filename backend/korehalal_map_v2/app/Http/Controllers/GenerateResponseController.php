@@ -35,6 +35,7 @@ class GenerateResponseController extends Controller
                 $errorOutput = $process->getIncrementalErrorOutput();
 
                 if (!empty($output)) {
+                    Log::info('Streaming Output:', ['output' => $output]);
                     echo "data: " . trim($output) . "\n\n";
                     ob_flush();
                     flush();
@@ -47,7 +48,7 @@ class GenerateResponseController extends Controller
                     flush();
                 }
 
-                usleep(50000); // 50ms delay to mimic real-time streaming
+                usleep(70000); // 70ms delay to mimic real-time streaming
             }
 
             if (!$process->isSuccessful()) {
@@ -55,7 +56,7 @@ class GenerateResponseController extends Controller
                 echo "data: Error processing request.\n\n";
             }
 
-            echo "data: [DONE]\n\n"; // indicate stream completion
+            echo "data: [DONE]\n"; // indicate stream completion
             ob_flush();
             flush();
         }, 200, [

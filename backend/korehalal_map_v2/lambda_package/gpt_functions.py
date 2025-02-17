@@ -147,7 +147,7 @@ def generate_general_response(prompt):
                 {"role": "system", "content": instruction},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=300,
+            max_tokens=500,
             stream=True
         )
 

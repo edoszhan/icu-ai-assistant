@@ -69,127 +69,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
   }
 
-  // Future<void> _sendToBackend(String userInput) async {
-  //   final Map<String, String> requestPayload = {"prompt": userInput};
-
-  //   try {
-  //     final request = http.Request("POST", Uri.parse(_apiUrl))
-  //       ..headers["Content-Type"] = "application/json"
-  //       ..body = jsonEncode(requestPayload);
-
-  //     final streamedResponse = await http.Client().send(request);
-
-  //     if (streamedResponse.statusCode == 200) {
-  //       final stream = streamedResponse.stream.transform(utf8.decoder);
-  //       String botMessage = "";
-  //       String buffer = "";
-
-  //       await for (var chunk in stream) {
-  //         if (chunk.startsWith("data: ")) {
-  //           String token = chunk.substring(6).trim(); // Remove 'data: ' prefix
-
-  //           if (token == "[DONE]") break; // Stop streaming when done
-
-  //           // Ensure spacing before words, but not inside a word split across tokens
-  //           if (buffer.isNotEmpty && !buffer.endsWith(" ") && !token.startsWith(" ")) {
-  //             buffer += " ";
-  //           }
-  //           buffer += token;
-
-  //           // If token ends in a space or punctuation, append to final output
-  //           if (RegExp(r'[.,!?;:\s]').hasMatch(token)) {
-  //             botMessage += buffer;
-  //             buffer = ""; // Reset buffer
-  //           }
-
-  //           setState(() {
-  //             _messages.last['content'] = botMessage + buffer; // Update UI progressively
-  //           });
-  //         }
-  //       }
-
-  //       // Append any remaining text in buffer after streaming ends
-  //       if (buffer.isNotEmpty) {
-  //         botMessage += buffer;
-  //         setState(() {
-  //           _messages.last['content'] = botMessage;
-  //         });
-  //       }
-  //     } else {
-  //       setState(() {
-  //         _messages.last['content'] = "Error: Unable to fetch response.";
-  //       });
-  //     }
-  //   } catch (e) {
-  //     setState(() {
-  //       _messages.last['content'] = "An error occurred: ${e.toString()}";
-  //     });
-  //   }
-  // }
-
-  // Future<void> _sendToBackend(String userInput) async {
-  //   final Map<String, String> requestPayload = {"prompt": userInput};
-
-  //   try {
-  //     final request = http.Request("POST", Uri.parse(_apiUrl))
-  //       ..headers["Content-Type"] = "application/json"
-  //       ..body = jsonEncode(requestPayload);
-
-  //     final streamedResponse = await http.Client().send(request);
-
-  //     if (streamedResponse.statusCode == 200) {
-  //       final stream = streamedResponse.stream.transform(utf8.decoder);
-  //       String botMessage = "";
-  //       String buffer = "";
-  //       String lastToken = "";
-  //       bool lastTokenHadSpace = false;
-
-  //       await for (var chunk in stream) {
-  //         if (chunk.startsWith("data: ")) {
-  //           String token = chunk.substring(6).trim(); // Remove 'data: ' prefix
-
-  //           if (token == "[DONE]") break; // Stop streaming when done
-
-  //           bool tokenHasLeadingSpace = token.startsWith(" ");
-  //           token = token.trim(); // Remove any leading space for processing
-
-  //           // Merge words properly if split across multiple tokens
-  //           if (lastToken.isNotEmpty && !lastTokenHadSpace && !tokenHasLeadingSpace) {
-  //             buffer += token; // Merge with previous token
-  //           } else {
-  //             if (buffer.isNotEmpty) botMessage += buffer + " ";
-  //             buffer = token;
-  //           }
-
-  //           // Check if this token ends with punctuation or a space
-  //           lastTokenHadSpace = RegExp(r'[.,!?;:\s]$').hasMatch(token);
-  //           lastToken = token;
-
-  //           setState(() {
-  //             _messages.last['content'] = botMessage + buffer; // Update UI progressively
-  //           });
-  //         }
-  //       }
-
-  //       // Append any remaining text in buffer after streaming ends
-  //       if (buffer.isNotEmpty) {
-  //         botMessage += buffer;
-  //         setState(() {
-  //           _messages.last['content'] = botMessage;
-  //         });
-  //       }
-  //     } else {
-  //       setState(() {
-  //         _messages.last['content'] = "Error: Unable to fetch response.";
-  //       });
-  //     }
-  //   } catch (e) {
-  //     setState(() {
-  //       _messages.last['content'] = "An error occurred: ${e.toString()}";
-  //     });
-  //   }
-  // }
-
   Future<void> _sendToBackend(String userInput) async {
     final Map<String, String> requestPayload = {"prompt": userInput};
 
@@ -258,7 +137,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
       });
     }
   }
-
 
   void _saveChatLocally() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
