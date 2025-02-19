@@ -151,42 +151,45 @@ def generate_general_response(prompt):
             stream=True
         )
 
-        buffer = ""
-        last_char = " "  # Assume initial space for correct spacing logic
-
         for chunk in response:
-            if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
-                token = chunk.choices[0].delta.content
+            print(chunk.choices[0].delta.content, end="")  
 
-                if token.strip():  # Ensure token is non-empty
-                    # **Fix issue 1:** Ensure space between words and numbers
-                    if re.search(r'([a-zA-Z])(\d)', last_char + token):  # Example: "The5th" → "The 5th"
-                        buffer += " " 
-                    elif re.search(r'(\d)([a-zA-Z])', last_char + token):  # Example: "4years" → "4 years"
-                        buffer += " "
+        # buffer = ""
+        # last_char = " "  # Assume initial space for correct spacing logic
 
-                    # # **Fix issue 3:** Prevent extra spaces (GPT may already provide them)
-                    if last_char.strip() and token[0].isalnum() and last_char.isalnum():
-                        buffer += ""  # Only add a space if needed
+        # for chunk in response:
+        #     if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
+        #         token = chunk.choices[0].delta.content
 
-                    buffer += token
-                    last_char = token[-1] if token else last_char  # Update last_char
+        #         if token.strip():  # Ensure token is non-empty
+        #             # **Fix issue 1:** Ensure space between words and numbers
+        #             if re.search(r'([a-zA-Z])(\d)', last_char + token):  # Example: "The5th" → "The 5th"
+        #                 buffer += " " 
+        #             elif re.search(r'(\d)([a-zA-Z])', last_char + token):  # Example: "4years" → "4 years"
+        #                 buffer += " "
 
-                    # **Fix issue 2:** Prevent additional space after sentence-ending punctuation
-                    if re.search(r'[.!?]$', token):
-                        buffer = buffer.rstrip()  # Remove trailing spaces after punctuation
+        #             # # **Fix issue 3:** Prevent extra spaces (GPT may already provide them)
+        #             if last_char.strip() and token[0].isalnum() and last_char.isalnum():
+        #                 buffer += ""  # Only add a space if needed
 
-                    # Flush when we reach a space, punctuation, or newline
-                    if re.search(r'\s|[.,!?;:\"]$', token):
-                        sys.stdout.write(buffer)
-                        sys.stdout.flush()
-                        buffer = ""  # Reset buffer
+        #             buffer += token
+        #             last_char = token[-1] if token else last_char  # Update last_char
 
-                    time.sleep(0.02)  # Simulated streaming delay
+        #             # **Fix issue 2:** Prevent additional space after sentence-ending punctuation
+        #             if re.search(r'[.!?]$', token):
+        #                 buffer = buffer.rstrip()  # Remove trailing spaces after punctuation
 
-        if buffer:  # Print any remaining buffer
-            sys.stdout.write(buffer)
-            sys.stdout.flush()
+        #             # Flush when we reach a space, punctuation, or newline
+        #             if re.search(r'\s|[.,!?;:\"]$', token):
+        #                 sys.stdout.write(buffer)
+        #                 sys.stdout.flush()
+        #                 buffer = ""  # Reset buffer
+
+        #             time.sleep(0.02)  # Simulated streaming delay
+
+        # if buffer:  # Print any remaining buffer
+        #     sys.stdout.write(buffer)
+        #     sys.stdout.flush()
 
     except Exception as e:
         sys.stderr.write(f"Error: {str(e)}\n")
@@ -223,34 +226,37 @@ def generate_human_response(prompt, results):
             stream=True
         )
 
-        buffer = ""
-        last_char = " "  # decide spacing based on last char
-
         for chunk in response:
-            if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
-                token = chunk.choices[0].delta.content.strip()
+            print(chunk.choices[0].delta.content, end="")  
 
-                if last_char and not last_char.isspace() and token and not token.startswith((" ", ".", ",", "'", "\"", "-", "’")):
-                    buffer += " "  # add space btw words
+        # buffer = ""
+        # last_char = " "  # decide spacing based on last char
 
-                buffer += token
-                last_char = token[-1] if token else last_char
+        # for chunk in response:
+        #     if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
+        #         token = chunk.choices[0].delta.content.strip()
 
-                # new sentences start with space
-                if re.search(r'[.!?]', token):
-                    buffer += " "
+        #         if last_char and not last_char.isspace() and token and not token.startswith((" ", ".", ",", "'", "\"", "-", "’")):
+        #             buffer += " "  # add space btw words
 
-                # if sentence-ending punctuation or space is found, print buffer
-                if re.search(r'\s|[.,!?;:\"]$', token):
-                    sys.stdout.write(buffer)
-                    sys.stdout.flush()
-                    buffer = ""  # reset buffer after printing
+        #         buffer += token
+        #         last_char = token[-1] if token else last_char
 
-                time.sleep(0.05)  # delay for streaming effect
+        #         # new sentences start with space
+        #         if re.search(r'[.!?]', token):
+        #             buffer += " "
 
-        if buffer: # print remaining buffer
-            sys.stdout.write(buffer)
-            sys.stdout.flush()
+        #         # if sentence-ending punctuation or space is found, print buffer
+        #         if re.search(r'\s|[.,!?;:\"]$', token):
+        #             sys.stdout.write(buffer)
+        #             sys.stdout.flush()
+        #             buffer = ""  # reset buffer after printing
+
+        #         time.sleep(0.05)  # delay for streaming effect
+
+        # if buffer: # print remaining buffer
+        #     sys.stdout.write(buffer)
+        #     sys.stdout.flush()
 
     except Exception as e:
         sys.stderr.write(f"Error: {str(e)}\n")

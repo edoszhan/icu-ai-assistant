@@ -15,10 +15,13 @@ class ConversationScreen extends StatefulWidget {
 class _ConversationScreenState extends State<ConversationScreen> {
   final List<Map<String, dynamic>> _messages = [];
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final String _apiUrl = 'http://127.0.0.1:8000/api/generate-response';
   bool _showImage = true;
   bool _isStreaming = false;
   StreamSubscription? _streamSubscription;
+  late Timer _typingTimer;
+  int _dotCount = 1;
 
   @override
   void initState() {
@@ -30,6 +33,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
   void dispose() {
     _controller.dispose();
     _streamSubscription?.cancel();
+    _scrollController.dispose();
+    _typingTimer.cancel();
     super.dispose();
   }
 
@@ -38,14 +43,19 @@ class _ConversationScreenState extends State<ConversationScreen> {
     String? savedChat = prefs.getString(widget.title);
     if (savedChat != null) {
       setState(() {
-        _messages.addAll(List<Map<String, String>>.from(jsonDecode(savedChat)));
-      });
-    } else {
-      setState(() {
         _messages.add({'role': 'bot', 'content': 'Hello, I am your Halal AI, how can I help you?'});
       });
     }
   }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+      }
+    });
+  }
+
 
   void _handleSend(String userInput) async {
     if (userInput.isEmpty) return;
@@ -58,16 +68,29 @@ class _ConversationScreenState extends State<ConversationScreen> {
       _controller.clear();
     });
 
+    _scrollToBottom();
+    _startTypingAnimation();
+
     await _sendToBackend(userInput);
     _saveChatLocally();
   }
 
+   void _startTypingAnimation() {
+      _typingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          _dotCount = (_dotCount % 5) + 1;
+          _messages.last['content'] = 'Generating answer' + '.' * _dotCount;
+        });
+      });
+    }
+
    void _stopStreaming() {
-    _streamSubscription?.cancel(); // Stop streaming
-    setState(() {
-      _isStreaming = false; // Hide stop button
-    });
-  }
+      _streamSubscription?.cancel(); // Stop streaming
+      _typingTimer.cancel();
+      setState(() {
+        _isStreaming = false; // Hide stop button
+      });
+    }
 
   Future<void> _sendToBackend(String userInput) async {
     final Map<String, String> requestPayload = {"prompt": userInput};
@@ -113,26 +136,24 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 _messages.last['content'] = botMessage + buffer;
               });
             }
+             _scrollToBottom();
           }
         });
 
-        _streamSubscription!.onDone(() {
-          if (mounted) {
-            setState(() {
-              _isStreaming = false;
-            });
-          }
+         _streamSubscription!.onDone(() {
+          _stopStreaming();
+          _scrollToBottom();
         });
 
       } else {
+        _stopStreaming();
         setState(() {
-          _isStreaming = false;
           _messages.last['content'] = "Error: Unable to fetch response.";
         });
       }
-    } catch (e) {
+      } catch (e) {
+      _stopStreaming();
       setState(() {
-        _isStreaming = false;
         _messages.last['content'] = "An error occurred: ${e.toString()}";
       });
     }
@@ -181,6 +202,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
           ),
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               reverse: true,
               itemCount: _messages.length,
               itemBuilder: (context, index) {

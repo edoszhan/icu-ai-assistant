@@ -16,6 +16,9 @@ def process_request(prompt):
         inquiry_subtype = inference["inquiry_subtype"]
         place_type = inference["type"]
         user_location = inference["coordinates"]
+        locations_list = inference["location"]
+
+        logging.debug("Identified user locations are %s", inference["location"])
 
         # Step 2: Handle the inquiry based on type
         if inquiry_type == "general_inquiry":
@@ -26,7 +29,7 @@ def process_request(prompt):
                 logging.debug("Itinerary inquiry detected. Fetching places...")
                 # get 3 places per type 
                 logging.debug("Calling get_places_by_type() with location: %s and place type: %s", user_location, place_type)
-                results = get_places_by_type(user_location, place_type, limit=3)
+                results = get_places_by_type(user_location, place_type, locations_list, limit=2)
                 logging.debug("Places retrieved: %s", results)
                 response = generate_human_response(prompt, results)
                 logging.debug("Generated human response: %s", response)

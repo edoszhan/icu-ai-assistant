@@ -37,44 +37,7 @@ def query_database(user_location, place_types):
         connection.close()
         logging.debug("Database returned: %s", results)
 
-# def get_places_by_type(user_location, place_types, limit=3):
-#     connection = connect_to_db()
-#     user_lat = user_location["latitude"]
-#     user_lon = user_location["longitude"]
-#     all_results = []
-
-#     logging.debug("Fetching places for type: %s at location: %s", place_type, user_location)
-#     try:
-#         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-#             for place_type in place_types:
-#                 sql_query = """
-#                 SELECT name, address, description, type,
-#                     ST_Distance_Sphere(point(longitude, latitude), point(%s, %s)) AS distance_meters
-#                 FROM locations
-#                 WHERE type = %s
-#                 ORDER BY distance_meters ASC
-#                 LIMIT %s;
-#                 """
-#                 cursor.execute(sql_query, (user_lon, user_lat, place_type, limit))
-#                 results = cursor.fetchall()
-
-#                 for row in results:
-#                     row['distance_km'] = round(row['distance_meters'] / 1000, 2)
-#                     del row['distance_meters']  
-
-#                 all_results.extend(results)
-#         return all_results
-
-#     except Exception as e:
-#         logging.error("Error fetching places: %s", str(e))
-#         return []
-
-#     finally:
-#         connection.close()
-#         logging.debug("Database returned: %s", results)
-
-def get_places_by_type(user_location, place_types, limit=3):
-    start_time = time.time()
+def get_places_by_type(user_location, place_types, locations_list, limit=2):
     connection = connect_to_db()
     if not connection:
         logging.error("❌ Database connection failed. Cannot proceed.")
@@ -84,36 +47,44 @@ def get_places_by_type(user_location, place_types, limit=3):
     user_lon = user_location["longitude"]
     all_results = []
 
-    logging.debug("Fetching places for types: %s at location: %s", place_types, user_location)
+    logging.debug("Fetching places for types: %s at user location: %s", place_types, user_location)
 
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            for place_type in place_types:
-                logging.debug("Processing place type: %s", place_type)
+            for location_name in locations_list:  
+                logging.debug("🔍 Searching for places in: %s", location_name)
 
-                sql_query = """
-                SELECT name, address, description, type,
-                    ST_Distance_Sphere(point(longitude, latitude), point(%s, %s)) AS distance_meters
-                FROM locations
-                WHERE type = %s
-                ORDER BY distance_meters ASC
-                LIMIT %s;
-                """
+                for place_type in place_types:  
+                    logging.debug("🗂️ Processing place type: %s", place_type)
 
-                logging.debug("Executing query: %s with values: (%s, %s, %s, %d)", sql_query, user_lon, user_lat, place_type, limit)
+                    sql_query = """
+                    SELECT name, address, description, type,
+                        ST_Distance_Sphere(point(longitude, latitude), point(%s, %s)) AS distance_meters
+                    FROM locations
+                    WHERE type = %s
+                    AND address LIKE %s  -- Ensure location name is in address
+                    ORDER BY distance_meters ASC
+                    LIMIT %s;
+                    """
 
-                cursor.execute(sql_query, (user_lon, user_lat, place_type, limit))
-                results = cursor.fetchall()
+                    location_filter = f"%{location_name}%"
 
-                if results:
-                    logging.debug("✅ Query returned: %s", results)
-                else:
-                    logging.warning("⚠️ No results found for place type: %s", place_type)
+                    logging.debug("Executing query: %s with values: (%s, %s, %s, %s, %d)", 
+                                  sql_query, user_lon, user_lat, place_type, location_filter, limit)
 
-                for row in results:
-                    row['distance_km'] = round(row['distance_meters'] / 1000, 2)
-                    del row['distance_meters']
-                    all_results.append(row)
+                    cursor.execute(sql_query, (user_lon, user_lat, place_type, location_filter, limit))
+                    results = cursor.fetchall()
+
+                    if results:
+                        logging.debug("✅ Query returned: %s", results)
+                    else:
+                        logging.warning("⚠️ No results found for place type: %s in %s", place_type, location_name)
+
+                    for row in results:
+                        row['distance_km'] = round(row['distance_meters'] / 1000, 2)
+                        del row['distance_meters']
+                        row['location_name'] = location_name  
+                        all_results.append(row)
 
         return all_results
 
@@ -122,8 +93,61 @@ def get_places_by_type(user_location, place_types, limit=3):
         return []
 
     finally:
-        logging.debug("Closing database connection.")
+        logging.debug("🔄 Closing database connection.")
         connection.close()
+
+
+# OLD VERSION WITHOUT CONSIDERATION OF MULTIPLE LOCATIONS (BELOW)
+
+# def get_places_by_type(user_location, place_types, locations_list, limit=3):
+#     connection = connect_to_db()
+#     if not connection:
+#         logging.error("❌ Database connection failed. Cannot proceed.")
+#         return []
+
+#     user_lat = user_location["latitude"]
+#     user_lon = user_location["longitude"]
+#     all_results = []
+
+#     logging.debug("Fetching places for types: %s at location: %s", place_types, user_location)
+
+#     try:
+#         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+#             for place_type in place_types:
+#                 logging.debug("Processing place type: %s", place_type)
+
+#                 sql_query = """
+#                 SELECT name, address, description, type,
+#                     ST_Distance_Sphere(point(longitude, latitude), point(%s, %s)) AS distance_meters
+#                 FROM locations
+#                 WHERE type = %s
+#                 ORDER BY distance_meters ASC
+#                 LIMIT %s;
+#                 """
+
+#                 logging.debug("Executing query: %s with values: (%s, %s, %s, %d)", sql_query, user_lon, user_lat, place_type, limit)
+
+#                 cursor.execute(sql_query, (user_lon, user_lat, place_type, limit))
+#                 results = cursor.fetchall()
+
+#                 if results:
+#                     logging.debug("✅ Query returned: %s", results)
+#                 else:
+#                     logging.warning("⚠️ No results found for place type: %s", place_type)
+
+#                 for row in results:
+#                     row['distance_km'] = round(row['distance_meters'] / 1000, 2)
+#                     del row['distance_meters']
+#                     all_results.append(row)
+#         return all_results
+
+#     except Exception as e:
+#         logging.error("❌ Error fetching places: %s", str(e))
+#         return []
+
+#     finally:
+#         logging.debug("Closing database connection.")
+#         connection.close()
 
 
 # ORM CODE (takes 2x more to get response)
