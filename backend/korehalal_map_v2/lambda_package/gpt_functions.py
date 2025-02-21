@@ -8,8 +8,6 @@ from openai import OpenAI, OpenAIError
 from location_operations import get_coordinates_nominatim
 
 logging.basicConfig(filename='/tmp/python_debug.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
-token_log = []
 api_key = os.getenv("OPENAI_API_KEY")
 
 if not api_key:
@@ -21,125 +19,11 @@ try:
     logging.debug("✅ OpenAI client initialized successfully.")
 except OpenAIError as e:
     logging.error("❌ Failed to initialize OpenAI client: %s", str(e))
-    raise
-
-# def generate_general_response(prompt):
-#     start_time = time.time()
-#     try:
-#         instruction = "You are a helpful assistant. Provide helpful answers with well-structured responses. Divide into paragraphs if necessary separated by newlines. Provide tokens as words as much as possible to avoid spacing issues"
-#         response = client.chat.completions.create(
-#             model="gpt-4o-mini",
-#             messages=[
-#                 {"role": "system", "content": instruction},
-#                 {"role": "user", "content": prompt},
-#             ],
-#             max_tokens=300,
-#             stream=True
-#         )
-
-#         # for chunk in response:
-#         #     print(chunk.choices[0].delta.content or "", end="")
-
-#         buffer = ""
-#         last_char = " "  # decide spacing based on last char
-
-#         for chunk in response:
-#             if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
-#                 token = chunk.choices[0].delta.content.strip()
-
-#                 if last_char and not last_char.isspace() and token and not token.startswith((" ", ".", ",", "'", "\"", "-", "’")):
-#                     buffer += " "  # add space btw words
-
-#                 buffer += token
-#                 last_char = token[-1] if token else last_char
-
-#                 # new sentences start with space
-#                 if re.search(r'[.!?]', token):
-#                     buffer += " "
-
-#                 # if sentence-ending punctuation or space is found, print buffer
-#                 if re.search(r'\s|[.,!?;:\"]$', token):
-#                     sys.stdout.write(buffer)
-#                     sys.stdout.flush()
-#                     buffer = ""  # reset buffer after printing
-
-#                 time.sleep(0.02)  # delay for streaming effect
-
-
-#         if buffer: # print remaining buffer
-#             sys.stdout.write(buffer)
-#             sys.stdout.flush()
-
-#     except Exception as e:
-#         sys.stderr.write(f"Error: {str(e)}\n")
-#         sys.stderr.flush()
-#     finally:
-#         end_time = time.time()
-#         logging.debug("generate_general_response execution time: %.4f seconds", end_time - start_time)
-
-# def generate_general_response(prompt):
-#     start_time = time.time()
-#     try:
-#         instruction = "You are a helpful assistant. Provide helpful answers with well-structured responses. Divide into paragraphs."
-        
-#         response = client.chat.completions.create(
-#             model="gpt-4o-mini",
-#             messages=[
-#                 {"role": "system", "content": instruction},
-#                 {"role": "user", "content": prompt},
-#             ],
-#             max_tokens=300,
-#             stream=True
-#         )
-
-#         buffer = ""
-#         last_char = " "  # Start assuming last character was a space
-
-#         for chunk in response:
-#             if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content is not None:
-#                 token = chunk.choices[0].delta.content
-
-#                 # Ensure token is non-empty and doesn't contain only whitespace
-#                 if token.strip():
-#                     # Check if the last character and the new token are both alphanumeric (word continuation)
-#                     if last_char.isalnum() and token[0].isalnum():
-#                         buffer += ""  # No space needed, word continuation
-#                     # If last character is punctuation or space, ensure proper spacing
-#                     elif last_char in ".,!?;:()[]{}\"'”’":
-#                         buffer += ""  # No extra space needed
-#                     else:
-#                         buffer += " "  # Space between words
-
-#                     buffer += token
-#                     last_char = token[-1] if token else last_char  # Update last_char
-
-#                     # If token ends in punctuation that indicates sentence end, add a space
-#                     if re.search(r'[.!?]', token):
-#                         buffer += " "
-
-#                     # If buffer reaches a space or punctuation boundary, flush output
-#                     if re.search(r'\s|[.,!?;:\"]$', token):
-#                         sys.stdout.write(buffer)
-#                         sys.stdout.flush()
-#                         buffer = ""  # Reset buffer
-
-#                     time.sleep(0.02)  # Simulated streaming delay
-
-#         if buffer:  # Print any remaining buffer
-#             sys.stdout.write(buffer)
-#             sys.stdout.flush()
-
-#     except Exception as e:
-#         sys.stderr.write(f"Error: {str(e)}\n")
-#         sys.stderr.flush()
-#     finally:
-#         end_time = time.time()
-#         logging.debug("generate_general_response execution time: %.4f seconds", end_time - start_time)
 
 def generate_general_response(prompt):
     start_time = time.time()
     try:
-        instruction = "You are a helpful assistant. Provide helpful answers with well-structured responses. Divide into paragraphs if necessary separated by newlines. Ensure proper spacing between words and numbers."
+        instruction = "You are a helpful assistant for users interested in Muslim-friendly travel to Korea. Answer only questions related to Korea travel and Muslim travel services. If a query is outside this scope, politely ask the user to specify their question in relation to these topics. Provide clear and structured responses with proper spacing between words and numbers."
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -147,10 +31,10 @@ def generate_general_response(prompt):
                 {"role": "system", "content": instruction},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=500,
+            max_tokens=700,
             stream=True
         )
-
+        
         for chunk in response:
             print(chunk.choices[0].delta.content, end="")  
 
@@ -222,7 +106,7 @@ def generate_human_response(prompt, results):
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=session_history + [{"role": "user", "content": response_prompt}],
-            max_tokens=500,
+            max_tokens=1000,
             stream=True
         )
 

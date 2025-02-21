@@ -37,7 +37,7 @@ def query_database(user_location, place_types):
         connection.close()
         logging.debug("Database returned: %s", results)
 
-def get_places_by_type(user_location, place_types, locations_list, limit=2):
+def get_places_by_type(user_location, place_types, locations_list, limit=3):
     connection = connect_to_db()
     if not connection:
         logging.error("❌ Database connection failed. Cannot proceed.")

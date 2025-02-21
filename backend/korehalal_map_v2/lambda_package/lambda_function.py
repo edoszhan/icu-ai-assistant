@@ -8,7 +8,7 @@ from sql_operations import query_database, get_places_by_type
 logging.basicConfig(filename='/tmp/python_debug.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def process_request(prompt):
-    # reset_session()
+    reset_session()
     try:
         # Step 1: Infer inquiry type and location
         inference = infer_type_and_location(prompt)
